@@ -428,20 +428,32 @@ export function resolverTurno(escolhaA, escolhaB, custoKiA = 0, custoKiB = 0, es
                 "Impulso duplo! Vocês se chocam no meio da arena!",
                 "Velocidade máxima dos dois lados! O impacto ecoa!"
             ]);
-        } else if (escolhaA.efeito === "AproximarVel" && (escolhaB.familia === "Ki" || escolhaB.efeito === "Carregar")) {
-            if (escolhaB.efeito === "Carregar") kiB += 30;
+        } else if (escolhaA.efeito === "AproximarVel" && escolhaB.familia === "Ki") {
             proximoEstadoA = "Ofensiva"; proximoEstadoB = "Cambaleando";
             narracao = sortearFrase([
-                "Aproximação em velocidade! Você evade e chega na Ofensiva!",
+                "Aproximação em velocidade! Você evade do Ki e chega na Ofensiva!",
                 "Flash veloz! Você cruza a arena e surpreende o oponente!",
                 "O oponente não te viu chegando! A pressão é sua!"
             ]);
-        } else if (escolhaB.efeito === "AproximarVel" && (escolhaA.familia === "Ki" || escolhaA.efeito === "Carregar")) {
-            if (escolhaA.efeito === "Carregar") kiA += 30;
+        } else if (escolhaA.efeito === "AproximarVel" && escolhaB.efeito === "Carregar") {
+            kiB += 30;
+            proximoEstadoA = "Ofensiva"; proximoEstadoB = "Cambaleando";
+            narracao = sortearFrase([
+                "Aproximação em velocidade! Você pega o oponente carregando, mas a energia dele subiu!",
+                "O oponente não te viu chegando! Você assume a Ofensiva, mas ele ganhou +30 de Ki!"
+            ]);
+        } else if (escolhaB.efeito === "AproximarVel" && escolhaA.familia === "Ki") {
             proximoEstadoB = "Ofensiva"; proximoEstadoA = "Cambaleando";
             narracao = sortearFrase([
-                "Oponente se aproxima em velocidade! Você é pego, mas conseguiu carregar Ki!",
-                "Flash veloz! O oponente cruza a arena e te pega de guarda baixa, mas sua energia subiu!",
+                "Oponente se aproxima em velocidade! Você é pego de guarda baixa!",
+                "Flash veloz! O oponente cruza a arena e te pega antes do disparo!",
+                "Você não o viu chegando! O oponente assume a Ofensiva!"
+            ]);
+        } else if (escolhaB.efeito === "AproximarVel" && escolhaA.efeito === "Carregar") {
+            kiA += 30;
+            proximoEstadoB = "Ofensiva"; proximoEstadoA = "Cambaleando";
+            narracao = sortearFrase([
+                "Oponente se aproxima em velocidade! Você é pego carregando, mas sua energia subiu!",
                 "Você não o viu chegando! O oponente assume a Ofensiva, mas você ganhou +30 de Ki!"
             ]);
         } else if (escolhaA.efeito === "Aproximar" && escolhaB.efeito === "Carregar") {
