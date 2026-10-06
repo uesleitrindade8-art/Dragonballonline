@@ -998,8 +998,9 @@ function aplicarResultadoTurno(movA, movB, resultado) {
             estado.meuEstado = "Neutro"; estado.oponenteEstado = "Neutro";
         }
     } else {
-        estado.meuEstado = "Neutro";
-        estado.oponenteEstado = "Neutro";
+        // Se nenhum dano ocorreu e nenhum estado foi forçado (ex: preparo do kamehameha), mantém o estado atual
+        estado.meuEstado = meuEstadoAnterior;
+        estado.oponenteEstado = oponEstadoAnterior;
     }
 
     animarArena(resultado);
