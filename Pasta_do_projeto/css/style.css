@@ -1,0 +1,440 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #1a1a1a;
+    color: #f1f1f1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+#app {
+    width: 100%;
+    max-width: 800px;
+    height: 100vh; /* Ocupa toda a altura da tela visível */
+    max-height: 100vh; /* Removido o limite de 600px para telas maiores */
+    background-color: #2a2a2a;
+    border: 2px solid #ffcc00;
+    border-radius: 0; /* Removido o arredondado para preencher telas mobile */
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+@media (min-width: 768px) {
+    #app {
+        height: 90vh; /* Em telas grandes, ocupa 90% */
+        max-height: 800px; /* Com limite máximo maior */
+        border-radius: 10px;
+    }
+}
+
+/* Sistema de Telas */
+.tela {
+    display: none;
+    flex-direction: column;
+    justify-content: flex-start; /* Alterado para permitir rolagem natural */
+    align-items: center;
+    height: 100%;
+    padding: 20px;
+    padding-bottom: 40px; /* Espaço extra no fundo */
+    text-align: center;
+    overflow-y: auto; /* Permite a rolagem vertical em qualquer tela */
+}
+
+/* Customização da barra de rolagem geral */
+.tela::-webkit-scrollbar {
+    width: 8px;
+}
+.tela::-webkit-scrollbar-track {
+    background: #1a1a1a;
+}
+.tela::-webkit-scrollbar-thumb {
+    background: #ffcc00;
+    border-radius: 4px;
+}
+
+.tela.ativa {
+    display: flex;
+}
+
+/* Tela Inicial */
+#tela-inicial h1 {
+    font-size: 3rem;
+    margin-bottom: 40px;
+    text-shadow: 2px 2px 0px #cc0000;
+}
+
+.menu-botoes {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 80%;
+}
+
+button {
+    padding: 15px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    background-color: #ffcc00;
+    color: #1a1a1a;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+button:hover {
+    background-color: #e6b800;
+    transform: scale(1.02);
+}
+
+input {
+    padding: 15px;
+    font-size: 1.2rem;
+    text-align: center;
+    border: 2px solid #ffcc00;
+    background-color: #1a1a1a;
+    color: #f1f1f1;
+    border-radius: 5px;
+    text-transform: uppercase;
+}
+
+#status-sala {
+    margin-top: 20px;
+    color: #ffcc00;
+    font-style: italic;
+}
+/* Tela de Seleção */
+#lista-personagens {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+    margin-top: 20px;
+}
+
+
+.card-personagem {
+    background-color: #1a1a1a;
+    border: 2px solid #ffcc00;
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.card-personagem h3 {
+    color: #ffcc00;
+    font-size: 1.5rem;
+}
+
+.card-personagem p {
+    font-size: 0.9rem;
+    color: #ccc;
+}
+
+/* === Tela de Batalha === */
+.arena-combate {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    padding: 15px;
+    gap: 10px;
+    justify-content: space-between;
+}
+
+.combatentes {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+.info-personagem {
+    flex: 1;
+    background: #1a1a1a;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #444;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.avatar-lutador {
+    font-size: 3rem;
+    width: 50px;
+    text-align: center;
+    flex-shrink: 0;
+    filter: drop-shadow(2px 2px 2px #000);
+    transition: filter 0.1s;
+}
+
+.direita-avatar { transform: scaleX(-1); }
+
+.status-texto { flex: 1; }
+
+.nome-personagem {
+    font-weight: bold;
+    color: #ffcc00;
+    margin-bottom: 8px;
+    text-align: center;
+    font-size: 1.1rem;
+}
+
+.barra-container {
+    margin-bottom: 6px;
+}
+
+.barra-titulo {
+    font-size: 0.75rem;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2px;
+    color: #aaa;
+}
+
+.barra-fundo {
+    width: 100%;
+    height: 12px;
+    background: #000;
+    border-radius: 3px;
+    overflow: hidden;
+    border: 1px solid #555;
+}
+
+.barra-preenchimento {
+    height: 100%;
+    transition: width 0.5s ease;
+}
+
+.barra-hp { background: #e74c3c; }
+.barra-ki { background: #3498db; }
+
+.area-gifs {
+    flex: 1;
+    min-height: 120px;
+    background: radial-gradient(circle, #222 0%, #111 100%);
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px solid #ffcc00;
+    color: #fff;
+    font-size: 1.6rem; /* Texto maior e mais dramático */
+    font-weight: bold;
+    text-align: center;
+    padding: 20px;
+    text-shadow: 2px 2px 4px #000;
+    box-shadow: inset 0 0 20px #000;
+}
+
+.log-narracao {
+    height: 100px; /* Aumentado */
+    width: 100%;
+    background: #000;
+    border: 1px solid #555;
+    border-radius: 5px;
+    padding: 10px;
+    overflow-y: auto;
+    font-size: 0.95rem; /* Texto maior */
+    line-height: 1.4;
+    color: #ccc;
+}
+.menu-acoes {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    overflow-y: auto; /* Permite a rolagem vertical */
+    max-height: 30vh; /* Limita a no máximo 30% da altura da tela */
+    padding-right: 5px; /* Espaço para a barra de rolagem não cobrir o botão */
+}
+
+/* Customização da barra de rolagem (opcional, mas deixa mais bonito) */
+.menu-acoes::-webkit-scrollbar {
+    width: 8px;
+}
+.menu-acoes::-webkit-scrollbar-track {
+    background: #1a1a1a;
+    border-radius: 4px;
+}
+.menu-acoes::-webkit-scrollbar-thumb {
+    background: #ffcc00;
+    border-radius: 4px;
+}
+
+.btn-acao {
+    background: #333;
+    color: #fff;
+    border: 1px solid #ffcc00;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: 0.2s;
+}
+
+.btn-acao:hover {
+    background: #ffcc00;
+    color: #000;
+    transform: scale(1.02);
+}
+
+/* === Tela de Fim de Jogo === */
+#tela-fim-jogo {
+    justify-content: center;
+}
+
+#titulo-fim {
+    font-size: 3.5rem;
+    margin-bottom: 30px;
+    text-shadow: 3px 3px 0px #cc0000;
+}
+
+#resumo-arena {
+    background: #1a1a1a;
+    border: 2px solid #ffcc00;
+    border-radius: 10px;
+    padding: 20px;
+    width: 90%;
+    max-width: 400px;
+    text-align: left;
+    margin-bottom: 30px;
+}
+
+.stat-linha {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+    border-bottom: 1px dashed #444;
+    padding-bottom: 5px;
+}
+
+.stat-linha:last-child {
+    border-bottom: none;
+}
+
+.stat-linha span:last-child {
+    color: #ffcc00;
+    font-weight: bold;
+}
+
+#btn-revanche {
+    background: #2ecc71;
+    color: #fff;
+    border: none;
+    padding: 15px 40px;
+    font-size: 1.5rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+#btn-revanche:hover {
+    background: #27ae60;
+    transform: scale(1.05);
+}
+
+/* === Arena Visual e Animações === */
+.lutador {
+    position: absolute;
+    font-size: 5rem;
+    bottom: 10px;
+    transition: transform 0.2s;
+    filter: drop-shadow(2px 2px 2px #000);
+}
+.esquerda { left: 10%; }
+.direita { right: 10%; transform: translateX(0) scaleX(-1); }
+
+.overlay-narracao {
+    position: absolute;
+    top: 20%;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    font-size: 1.2rem;
+    color: #fff;
+    text-shadow: 2px 2px 4px #000;
+    padding: 0 20px;
+    pointer-events: none;
+    transition: opacity 0.3s;
+}
+
+/* === Animações === */
+@keyframes dano {
+    0%, 100% { opacity: 1; filter: drop-shadow(2px 2px 2px #000); }
+    25%, 75% { opacity: 0.2; filter: drop-shadow(2px 2px 2px #f00); }
+    50% { opacity: 1; transform: translateY(-5px); filter: drop-shadow(2px 2px 2px #f00); }
+}
+.anim-dano { animation: dano 0.4s ease-out; }
+
+/* Tremor de Tela Inteira */
+@keyframes tremor {
+    0%, 100% { transform: translate(0, 0); }
+    20% { transform: translate(-3px, 3px); }
+    40% { transform: translate(3px, -3px); }
+    60% { transform: translate(-3px, 3px); }
+    80% { transform: translate(3px, -3px); }
+}
+.tremor-tela { animation: tremor 0.4s; }
+
+/* Tremor Forte para Especiais/Finalizadores */
+@keyframes tremor-forte {
+    0%, 100% { transform: translate(0, 0); }
+    10% { transform: translate(-7px, 5px); }
+    20% { transform: translate(7px, -5px); }
+    30% { transform: translate(-6px, -4px); }
+    40% { transform: translate(6px, 4px); }
+    50% { transform: translate(-5px, 5px); }
+    60% { transform: translate(5px, -4px); }
+    70% { transform: translate(-4px, 3px); }
+    80% { transform: translate(4px, -3px); }
+    90% { transform: translate(-2px, 2px); }
+}
+.tremor-tela-forte { animation: tremor-forte 0.8s infinite; }
+@keyframes pisar {
+    0%, 100% { opacity: 1; transform: translateX(-50%) scale(1); }
+    50% { opacity: 0.7; transform: translateX(-50%) scale(1.05); }
+}
+/* Cores dos Sub-tipos */
+.btn-cor-azul {
+    background: #2980b9;
+    color: #fff;
+    border: 1px solid #3498db;
+}
+.btn-cor-azul:hover { background: #3498db; color: #fff; }
+
+.btn-cor-vermelho {
+    background: #c0392b;
+    color: #fff;
+    border: 1px solid #e74c3c;
+}
+.btn-cor-vermelho:hover { background: #e74c3c; color: #fff; }
+
+.btn-cor-verde {
+    background: #27ae60;
+    color: #fff;
+    border: 1px solid #2ecc71;
+}
+.btn-cor-verde:hover { background: #2ecc71; color: #fff; }
+
+.btn-cor-neutro {
+    background: #f1c40f; /* Amarelo */
+    color: #000; /* Texto preto para contraste */
+    border: 1px solid #f39c12;
+}
+.btn-cor-neutro:hover { 
+    background: #f39c12; 
+    color: #000; 
+}
