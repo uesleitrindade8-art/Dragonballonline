@@ -77,7 +77,7 @@ let rivalidadeContagem = 0;
 const PREPARAR_KAME = { nome: "Kamehameha (Preparo)", familia: "Neutro", subTipo: "Neutro", efeito: "Preparar" };
 const DISPARAR_KAME = { nome: "Kamehameha", familia: "Ki", subTipo: "Pedra", dano: 28, efeito: "Disparar" };
 const PREPARAR_GENKI = { nome: "Genki Dama (Preparo)", familia: "Neutro", subTipo: "Neutro", efeito: "PrepararGenki" };
-const DISPARAR_GENKI = { nome: "Genki Dama", familia: "Ki", subTipo: "Neutro", dano: 40, efeito: "DispararGenki" };
+const DISPARAR_GENKI = { nome: "Genki Dama", familia: "Ki", subTipo: "Verde", dano: 40, ki: 50, efeito: "DispararGenki", id: "genki_dama" };
 
 // --- AUTENTICAÇÃO E SALAS ONLINE ---
 auth.signInAnonymously().catch((error) => console.error("Erro no Auth:", error));
@@ -113,7 +113,9 @@ document.getElementById('btn-criar-sala').addEventListener('click', async () => 
     }
     
     codigoSalaAtual = gerarCodigoSala();
-    document.getElementById('status-sala').innerText = `Sala ${codigoSalaAtual} criada! Aguardando oponente...`;
+    document.getElementById('codigo-sala-display').innerText = codigoSalaAtual;
+    document.getElementById('menu-botoes').style.display = 'none';
+    document.getElementById('tela-aguardando').style.display = 'block';
     
     try {
         await db.collection('salas').doc(codigoSalaAtual).set({
@@ -125,7 +127,21 @@ document.getElementById('btn-criar-sala').addEventListener('click', async () => 
     } catch (e) {
         console.error("Erro ao criar sala:", e);
         alert("Erro ao criar sala.");
+        document.getElementById('menu-botoes').style.display = 'flex';
+        document.getElementById('tela-aguardando').style.display = 'none';
     }
+});
+
+document.getElementById('btn-cancelar-sala').addEventListener('click', async () => {
+    if (unsubscribeSala) unsubscribeSala();
+    if (codigoSalaAtual) {
+        try { await db.collection('salas').doc(codigoSalaAtual).delete(); } catch(e) {}
+    }
+    codigoSalaAtual = null;
+    jaFuiParaSelecao = false;
+    jaInicieiBatalha = false;
+    document.getElementById('menu-botoes').style.display = 'flex';
+    document.getElementById('tela-aguardando').style.display = 'none';
 });
 
 document.getElementById('btn-entrar-sala').addEventListener('click', async () => {
@@ -156,6 +172,14 @@ document.getElementById('btn-entrar-sala').addEventListener('click', async () =>
         console.error("Erro ao entrar na sala:", e);
         alert("Erro ao entrar na sala. Veja o console (F12) para detalhes.");
     }
+});
+
+// Listener do Modal Como Jogar
+document.getElementById('btn-como-jogar').addEventListener('click', () => {
+    document.getElementById('modal-como-jogar').style.display = 'flex';
+});
+document.getElementById('btn-fechar-manual').addEventListener('click', () => {
+    document.getElementById('modal-como-jogar').style.display = 'none';
 });
 
 function escutarSala(codigo) {
@@ -295,19 +319,39 @@ function iniciarTurno() {
         }, 1500);
     } else if (meuGenkiTurno > 0) {
         let turno = meuGenkiTurno;
-        atualizarArena(`Você concentra energia para a Genki Dama... (${turno}/3)`);
-        document.getElementById('menu-acoes').innerHTML = `<p style="grid-column: span 2; text-align: center;">CONCENTRANDO ENERGIA... (${turno}/3)</p>`;
-        let genkiMov = turno === 3 ? DISPARAR_GENKI : PREPARAR_GENKI;
-        clearInterval(timerTurno);
-        setTimeout(() => {
-            if (isModoBot) {
-                resolverTurnoAtual(genkiMov, 0, null, null);
-            } else {
-                db.collection('salas').doc(codigoSalaAtual).update({
-                    [`escolhasTurno.${meuUid}`]: { mov: genkiMov, custoKi: 0 }
-                });
+        if (turno === 3) {
+            // Regra 1: No 3º turno, o jogador precisa ter 50 de Ki para lançar
+            atualizarArena("A Genki Dama está pronta! Concentre 50 de Ki para arremessá-la!");
+            const menu = document.getElementById('menu-acoes');
+            menu.innerHTML = '';
+            const btn = document.createElement('button');
+            btn.className = 'btn-acao btn-cor-verde';
+            btn.style.gridColumn = 'span 2';
+            btn.innerText = `🌟 Lançar Genki Dama (50 Ki) 🌟`;
+            btn.onclick = () => escolherMovimento(DISPARAR_GENKI);
+            
+            if (estado.meuKi < 50) {
+                btn.disabled = true;
+                btn.style.opacity = 0.5;
+                btn.style.cursor = 'not-allowed';
+                btn.innerText = 'Ki insuficiente para arremessar...';
             }
-        }, 1500);
+            menu.appendChild(btn);
+            iniciarTimer();
+        } else {
+            atualizarArena(`Você concentra energia para a Genki Dama... (${turno}/3)`);
+            document.getElementById('menu-acoes').innerHTML = `<p style="grid-column: span 2; text-align: center;">CONCENTRANDO ENERGIA... (${turno}/3)</p>`;
+            clearInterval(timerTurno);
+            setTimeout(() => {
+                if (isModoBot) {
+                    resolverTurnoAtual(PREPARAR_GENKI, 0, null, null);
+                } else {
+                    db.collection('salas').doc(codigoSalaAtual).update({
+                        [`escolhasTurno.${meuUid}`]: { mov: PREPARAR_GENKI, custoKi: 0 }
+                    });
+                }
+            }, 1500);
+        }
     } else {
         // Aplica a penalidade de Tensão Máxima antes de renderizar
         if (tensaoMaximaAtiva) {
@@ -489,9 +533,9 @@ function renderizarBotoes() {
     menu.innerHTML = '';
     
     const movimentosPorEstado = {
-        "Neutro": ["seq_socos", "chute_giratorio", "golpe_cabeca", "martelo", "chute_ascendente", "rajada_ki", "onda_ampla", "kamehameha", "guarda_alta", "bloqueio_pernas", "postura_fechada", "carregar_ki", "esperar", "zanzoken", "subir_ceus"],
-        "Ofensiva": ["seq_socos", "chute_giratorio", "golpe_cabeca", "martelo", "chute_ascendente", "rajada_ki", "onda_ampla", "kamehameha", "carregar_ki", "esperar"],
-        "Cambaleando": ["seq_socos", "chute_giratorio", "golpe_cabeca", "martelo", "chute_ascendente", "rajada_ki", "onda_ampla", "kamehameha", "guarda_alta", "bloqueio_pernas", "postura_fechada", "carregar_ki", "esperar", "reversal", "zanzoken"],
+        "Neutro": ["seq_socos", "chute_giratorio", "golpe_cabeca", "martelo", "chute_ascendente", "rajada_ki", "onda_ampla", "kamehameha", "guarda_alta", "bloqueio_pernas", "postura_fechada", "carregar_ki", "esperar", "zanzoken", "subir_ceus", "agarrao", "leitura_golpe"],
+        "Ofensiva": ["seq_socos", "chute_giratorio", "golpe_cabeca", "martelo", "chute_ascendente", "rajada_ki", "onda_ampla", "kamehameha", "carregar_ki", "esperar", "agarrao", "leitura_golpe"],
+        "Cambaleando": ["seq_socos", "chute_giratorio", "golpe_cabeca", "martelo", "chute_ascendente", "rajada_ki", "onda_ampla", "kamehameha", "guarda_alta", "bloqueio_pernas", "postura_fechada", "carregar_ki", "esperar", "reversal", "zanzoken", "leitura_golpe"],
         "Distancia": ["rajada_ki", "onda_ampla", "kamehameha", "genki_dama", "guarda_alta", "bloqueio_pernas", "postura_fechada", "carregar_ki", "aproximar", "aproximar_vel", "zanzoken", "subir_ceus"],
         "OfensivaDist": ["rajada_ki", "onda_ampla", "kamehameha", "carregar_ki", "esperar", "aproximar", "aproximar_vel"],
         "CambaleandoDist": ["rajada_ki", "onda_ampla", "guarda_alta", "bloqueio_pernas", "postura_fechada", "carregar_ki", "aproximar", "aproximar_vel", "reversal"],
@@ -585,9 +629,9 @@ function resolverTurnoAtual(movA, custoKiA, movB_param, custoKiB_param) {
                 oponentePreparando = true;
             } else {
                 const movsPorEstadoBot = {
-                    "Neutro": ["seq_socos", "chute_giratorio", "golpe_cabeca", "martelo", "chute_ascendente", "rajada_ki", "onda_ampla", "kamehameha", "guarda_alta", "bloqueio_pernas", "postura_fechada", "carregar_ki", "esperar", "zanzoken", "subir_ceus"],
-                    "Ofensiva": ["seq_socos", "chute_giratorio", "golpe_cabeca", "martelo", "chute_ascendente", "rajada_ki", "onda_ampla", "kamehameha", "carregar_ki", "esperar"],
-                    "Cambaleando": ["seq_socos", "chute_giratorio", "golpe_cabeca", "martelo", "chute_ascendente", "rajada_ki", "onda_ampla", "kamehameha", "guarda_alta", "bloqueio_pernas", "postura_fechada", "carregar_ki", "esperar", "reversal", "zanzoken"],
+                    "Neutro": ["seq_socos", "chute_giratorio", "golpe_cabeca", "martelo", "chute_ascendente", "rajada_ki", "onda_ampla", "kamehameha", "guarda_alta", "bloqueio_pernas", "postura_fechada", "carregar_ki", "esperar", "zanzoken", "subir_ceus", "agarrao", "leitura_golpe"],
+                    "Ofensiva": ["seq_socos", "chute_giratorio", "golpe_cabeca", "martelo", "chute_ascendente", "rajada_ki", "onda_ampla", "kamehameha", "carregar_ki", "esperar", "agarrao", "leitura_golpe"],
+                    "Cambaleando": ["seq_socos", "chute_giratorio", "golpe_cabeca", "martelo", "chute_ascendente", "rajada_ki", "onda_ampla", "kamehameha", "guarda_alta", "bloqueio_pernas", "postura_fechada", "carregar_ki", "esperar", "reversal", "zanzoken", "leitura_golpe"],
                     "Distancia": ["rajada_ki", "onda_ampla", "kamehameha", "genki_dama", "guarda_alta", "bloqueio_pernas", "postura_fechada", "carregar_ki", "aproximar", "aproximar_vel", "zanzoken", "subir_ceus"],
                     "OfensivaDist": ["rajada_ki", "onda_ampla", "kamehameha", "carregar_ki", "esperar", "aproximar", "aproximar_vel"],
                     "CambaleandoDist": ["rajada_ki", "onda_ampla", "guarda_alta", "bloqueio_pernas", "postura_fechada", "carregar_ki", "aproximar", "aproximar_vel", "reversal"],
@@ -825,13 +869,24 @@ function aplicarResultadoTurno(movA, movB, resultado) {
     if (movB.efeito === "Disparar") oponentePreparando = false;
 
     if (movA.efeito === "PrepararGenki" && !resultado.cancelarA) {
-        meuGenkiTurno++;
+        // Regra 2: Se a vida cair abaixo de 50, a concentração quebra
+        if (estado.meuHP < 50) {
+            meuGenkiTurno = 0;
+            resultado.narracao += " Você está muito fraco e perde a concentração! A Genki Dama se desfaz!";
+        } else {
+            meuGenkiTurno++;
+        }
     } else if (movA.efeito === "DispararGenki" || resultado.cancelarA) {
         meuGenkiTurno = 0;
     }
 
     if (movB.efeito === "PrepararGenki" && !resultado.cancelarB) {
-        oponenteGenkiTurno++;
+        if (estado.oponenteHP < 50) {
+            oponenteGenkiTurno = 0;
+            resultado.narracao += " O oponente está muito fraco e perde a concentração! A Genki Dama se desfaz!";
+        } else {
+            oponenteGenkiTurno++;
+        }
     } else if (movB.efeito === "DispararGenki" || resultado.cancelarB) {
         oponenteGenkiTurno = 0;
     }

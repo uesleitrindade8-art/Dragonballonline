@@ -11,17 +11,67 @@
         <!-- Tela Inicial -->
         <section id="tela-inicial" class="tela ativa">
             <h1>ARENA TENKAICHI</h1>
-                <div class="menu-botoes">
+            
+            <div id="menu-botoes" class="menu-botoes">
                 <button id="btn-criar-sala">Criar Sala</button>
                 <input type="text" id="input-codigo-sala" placeholder="Código da Sala" maxlength="9">
                 <button id="btn-entrar-sala">Entrar na Sala</button>
                 <button id="btn-lutar-bot" style="background: #7f8c8d; color: white; margin-top: 10px;">Lutar contra Bot (Teste)</button>
-            <label style="margin-top: 10px; color: #aaa; font-size: 0.9rem; display: flex; align-items: center; gap: 5px; justify-content: center;"><input type="checkbox" id="chk-bot-passivo" style="width: auto; padding: 0;"> Bot Passivo (Só Carrega Ki)</label>
+                <label style="margin-top: 10px; color: #aaa; font-size: 0.9rem; display: flex; align-items: center; gap: 5px; justify-content: center;">
+                    <input type="checkbox" id="chk-bot-passivo" style="width: auto; padding: 0;"> Bot Passivo (Só Carrega Ki)
+                </label>
+                <button id="btn-como-jogar" style="background: transparent; border: 1px solid #3498db; color: #3498db; margin-top: 15px; font-size: 1rem; padding: 10px 20px;">📖 Como Jogar</button>
             </div>
+            
+            <div id="modal-como-jogar" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 20; flex-direction: column; padding: 20px; box-sizing: border-box; overflow-y: auto;">
+                <button id="btn-fechar-manual" style="background: #e74c3c; color: white; padding: 10px 20px; margin-bottom: 15px; align-self: flex-end;">Fechar X</button>
+                <div style="max-width: 600px; margin: 0 auto; color: #ccc; line-height: 1.6;">
+                    <h2 style="color: #ffcc00; text-align: center; margin-bottom: 20px;">Manual do Guerreiro</h2>
+                    <div style="background: #222; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #3498db;">
+                        <h3 style="color: #3498db;">1. O Básico (Cores)</h3>
+                        <p>Todo ataque e defesa possui uma Cor (Sub-tipo). A regra é simples:</p>
+                        <ul style="list-style: none; margin-top: 10px; font-size: 1.1rem;">
+                            <li>🔵 Azul vence 🔴 Vermelho</li>
+                            <li>🔴 Vermelho vence 🟢 Verde</li>
+                            <li>🟢 Verde vence 🔵 Azul</li>
+                        </ul>
+                        <p style="margin-top: 10px;">Se as cores forem iguais, ocorre um CLASH.</p>
+                    </div>
+                    <div style="background: #222; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #e74c3c;">
+                        <h3 style="color: #e74c3c;">2. Famílias (O Macro-Jogo)</h3>
+                        <ul>
+                            <li><strong>Ki:</strong> Vence Físico.</li>
+                            <li><strong>Físico:</strong> Vence Defesa.</li>
+                            <li><strong>Defesa:</strong> Vence Ki.</li>
+                        </ul>
+                    </div>
+                    <div style="background: #222; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #f1c40f;">
+                        <h3 style="color: #f1c40f;">3. Combos e Nerfs</h3>
+                        <p><strong>Buff:</strong> 3 golpes Físicos diferentes seguidos = Finalização!</p>
+                        <p><strong>Nerf:</strong> Mesmo golpe 3x seguidas = Dano zerado e contra-ataque!</p>
+                    </div>
+                    <div style="background: #222; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #2ecc71;">
+                        <h3 style="color: #2ecc71;">4. Altitude e Distância</h3>
+                        <p>Vocês podem estar Corpo a Corpo, À Distância ou Voando. Use as ações de mover para alterar.</p>
+                    </div>
+                    <div style="background: #222; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #9b59b6;">
+                        <h3 style="color: #9b59b6;">5. Especiais e Ki</h3>
+                        <p>Kamehameha custa 50 Ki e demora 2 turnos. Genki Dama custa 0 Ki mas te deixa vulnerável por 3 turnos!</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="tela-aguardando" style="display: none; margin-top: 30px; background: #1a1a1a; padding: 20px; border: 2px solid #ffcc00; border-radius: 8px; width: 80%;">
+                <h2 style="color: #ffcc00; margin-bottom: 15px;">Sala Criada!</h2>
+                <p style="font-size: 1.5rem; margin-bottom: 10px;">Código: <span id="codigo-sala-display" style="font-weight: bold; color: #3498db;"></span></p>
+                <p style="color: #ccc; margin-bottom: 20px;">Aguardando segundo jogador...</p>
+                <button id="btn-cancelar-sala" style="background: #e74c3c; color: white; padding: 10px 20px;">Cancelar e Voltar</button>
+            </div>
+
             <div id="status-sala"></div>
         </section>
 
-        <!-- Tela de Seleção (apenas placeholder por enquanto) -->
+        <!-- Tela de Seleção -->
         <section id="tela-selecao" class="tela">
             <h2>Escolha seu Guerreiro</h2>
             <div id="lista-personagens"></div>
@@ -30,23 +80,16 @@
         <!-- Tela de Batalha -->
         <section id="tela-batalha" class="tela">
             <div class="arena-combate">
-                <!-- Status dos Jogadores -->
                 <div class="combatentes">
                     <div id="info-jogador" class="info-personagem"></div>
                     <div id="info-oponente" class="info-personagem"></div>
                 </div>
-                
-                <!-- Área da Narração -->
                 <div id="area-gifs" class="area-gifs">
                     <span id="texto-narracao">A luta vai começar!</span>
                 </div>
-
-                <!-- Log de Narração -->
                 <div id="log-narracao" class="log-narracao">
                     <p>A luta vai começar!</p>
                 </div>
-
-                <!-- Menu de Ações (botões dos golpes) -->
                 <div id="menu-acoes" class="menu-acoes"></div>
             </div>
         </section>
@@ -59,6 +102,7 @@
             <button id="btn-ver-log" style="background: transparent; border: 1px solid #3498db; color: #3498db; margin-top: 10px; font-size: 1rem; padding: 10px 20px;">Ver Log da Batalha 📜</button>
             <button id="btn-menu-inicial" style="background: transparent; border: 1px solid #ffcc00; color: #ffcc00; margin-top: 10px; font-size: 1rem; padding: 10px 20px;">Voltar ao Menu</button>
         </section>
+        
         <div id="modal-log" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10; flex-direction: column; padding: 20px; box-sizing: border-box; overflow-y: auto;">
             <h2 style="color: #ffcc00; margin-bottom: 20px;">Log da Batalha</h2>
             <div id="log-completo-fim" style="background: #222; padding: 15px; border-radius: 8px; flex: 1; overflow-y: auto; font-size: 0.9rem; color: #ccc; border: 1px solid #555;"></div>
@@ -66,12 +110,12 @@
         </div>
     </div>
 
-    <!-- SDK do Firebase via CDN (Conforme GDD) -->
+    <!-- SDK do Firebase via CDN -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
-    <!-- Scripts do Jogo (usando type=module para import/export locais) -->
+    <!-- Scripts do Jogo -->
     <script type="module" src="js/data.js"></script>
     <script type="module" src="js/engine.js"></script>
     <script type="module" src="js/ui.js"></script>
