@@ -525,13 +525,12 @@ export function resolverTurno(escolhaA, escolhaB, custoKiA = 0, custoKiB = 0, es
                     proximoEstadoA = "SoloAereo"; proximoEstadoB = "AereoSolo";
                     narracao = "Você desce ao solo desviando do ataque! O oponente permanece no ar.";
                 }
-            } else { // Empate
-                danoA = Math.floor(escolhaB.dano * 0.3);
-                danoB = Math.floor(escolhaA.dano * 0.3);
-                kiA += 10; kiB += 10;
-                narracao = "CLASH! O golpe colide com a sua evasão. Ambos cambaleiam.";
-                proximoEstadoA = "Cambaleando"; proximoEstadoB = "Cambaleando";
+            } else { // Empate (Ataque acerta evasão de mesma cor)
                 elevacaoPermitidaA = false;
+                danoA = escolhaB.dano; // Dano cheio, evasão falha
+                kiA += 10;
+                proximoEstadoB = "Ofensiva"; proximoEstadoA = "Cambaleando";
+                narracao = "Sua evasão falhou! O golpe do oponente te acerta antes de você mudar de altitude!";
             }
         }
         // B tenta elevar e A ataca
@@ -551,13 +550,12 @@ export function resolverTurno(escolhaA, escolhaB, custoKiA = 0, custoKiB = 0, es
                     proximoEstadoB = "SoloAereo"; proximoEstadoA = "AereoSolo";
                     narracao = "O oponente desce ao solo desviando do seu ataque! Você permanece no ar.";
                 }
-            } else { // Empate
-                danoA = Math.floor(escolhaB.dano * 0.3);
-                danoB = Math.floor(escolhaA.dano * 0.3);
-                kiA += 10; kiB += 10;
-                narracao = "CLASH! Seu golpe colide com a evasão dele. Ambos cambaleiam.";
-                proximoEstadoA = "Cambaleando"; proximoEstadoB = "Cambaleando";
+            } else { // Empate (Ataque acerta evasão de mesma cor)
                 elevacaoPermitidaB = false;
+                danoB = escolhaA.dano; // Dano cheio, evasão falha
+                kiB += 10;
+                proximoEstadoA = "Ofensiva"; proximoEstadoB = "Cambaleando";
+                narracao = "A evasão do oponente falhou! Seu golpe o acerta antes dele mudar de altitude!";
             }
         }
         
