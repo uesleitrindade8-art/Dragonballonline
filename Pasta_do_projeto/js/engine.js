@@ -17,7 +17,7 @@ function sortearFrase(arr) {
     return arr[Math.floor(Math.random() * arr.length)];
 }
 
-export function resolverTurno(escolhaA, escolhaB, custoKiA = 0, custoKiB = 0) {
+export function resolverTurno(escolhaA, escolhaB, custoKiA = 0, custoKiB = 0, estadoA = "Neutro", estadoB = "Neutro") {
     let danoA = 0, danoB = 0, kiA = 0, kiB = 0;
     let cancelarA = false, cancelarB = false;
     let narracao = "";
@@ -78,6 +78,10 @@ export function resolverTurno(escolhaA, escolhaB, custoKiA = 0, custoKiB = 0) {
                 "O ataque do oponente te acerta antes do disparo! Dano total!",
                 "Impossível concentrar! Você foi brutalmente interrompido!"
             ]);
+            proximoEstadoB = "Ofensiva"; proximoEstadoA = "Cambaleando";
+        } else if (escolhaB.efeito === "Esperar" || escolhaB.efeito === "Fugir") {
+            narracao = "Você concentra energia... O oponente aproveita para ganhar distância!";
+            proximoEstadoA = "Distancia"; proximoEstadoB = "Distancia";
         } else {
             narracao = sortearFrase([
                 "Você concentra energia... KA... ME... (Vulnerável!)",
@@ -98,6 +102,10 @@ export function resolverTurno(escolhaA, escolhaB, custoKiA = 0, custoKiB = 0) {
                 "Você não deixou ele respirar! Dano cheio no preparo!",
                 "O oponente tenta carregar, mas você é mais rápido!"
             ]);
+            proximoEstadoA = "Ofensiva"; proximoEstadoB = "Cambaleando";
+        } else if (escolhaA.efeito === "Esperar" || escolhaA.efeito === "Fugir") {
+            narracao = "Oponente concentra energia... Você aproveita para ganhar distância!";
+            proximoEstadoA = "Distancia"; proximoEstadoB = "Distancia";
         } else {
             narracao = sortearFrase([
                 "Oponente concentra energia... (Cuidado!)",
@@ -115,8 +123,8 @@ export function resolverTurno(escolhaA, escolhaB, custoKiA = 0, custoKiB = 0) {
     if (isPrepararGenkiA || isPrepararGenkiB) {
         if (isPrepararGenkiA) {
             if (escolhaB.efeito === "AproximarVel") {
-                danoA = 10; // Dano da aproximação
-                cancelarA = true; // Cancela a Genki
+                danoA = 10;
+                cancelarA = true;
                 narracao = sortearFrase([
                     "O oponente cruzou a arena num flash! Sua Genki Dama foi cancelada!",
                     "Aproximação veloz! Você não teve tempo de juntar energia!",
@@ -188,7 +196,7 @@ export function resolverTurno(escolhaA, escolhaB, custoKiA = 0, custoKiB = 0) {
                 ]);
             }
         }
-        return { danoA, danoB, kiA, kiB, narracao, cancelarA, cancelarB, proximoEstadoA: "Neutro", proximoEstadoB: "Neutro", clashDetectado };
+        return { danoA, danoB, kiA, kiB, narracao, cancelarA, cancelarB, proximoEstadoA: null, proximoEstadoB: null, clashDetectado };
     }
 
     // 3.0 Sofrendo Combo (Vítima não pode reagir, dano direto)
@@ -246,7 +254,7 @@ export function resolverTurno(escolhaA, escolhaB, custoKiA = 0, custoKiB = 0) {
                 "Onda de energia devastadora! O oponente é varrido!"
             ]);
         }
-        return { danoA, danoB, kiA, kiB, narracao, cancelarA, cancelarB, proximoEstadoA, proximoEstadoB, clashDetectado };
+        return { danoA, danoB, kiA, kiB, narracao, cancelarA, cancelarB, proximoEstadoA: null, proximoEstadoB: null, clashDetectado };
     }
 
     if (isDispararB) {
@@ -266,7 +274,7 @@ export function resolverTurno(escolhaA, escolhaB, custoKiA = 0, custoKiB = 0) {
                 "Sem defesa! O Kamehameha te atinge com força total!"
             ]);
         }
-        return { danoA, danoB, kiA, kiB, narracao, cancelarA, cancelarB, proximoEstadoA, proximoEstadoB, clashDetectado };
+        return { danoA, danoB, kiA, kiB, narracao, cancelarA, cancelarB, proximoEstadoA: null, proximoEstadoB: null, clashDetectado };
     }
 
     // 3.5 Reversal de Desespero (GDD 10.8)
@@ -370,8 +378,7 @@ export function resolverTurno(escolhaA, escolhaB, custoKiA = 0, custoKiB = 0) {
         }
         return { danoA, danoB, kiA, kiB, narracao, cancelarA, cancelarB, proximoEstadoA, proximoEstadoB, clashDetectado };
     }
-
-    // 3.5.3 Atordoado (GDD 10.1)
+        // 3.5.3 Atordoado (GDD 10.1)
     const isStunMoveA = escolhaA.efeito === "Sacudir" || escolhaA.efeito === "Aguentar";
     const isStunMoveB = escolhaB.efeito === "Sacudir" || escolhaB.efeito === "Aguentar";
 
@@ -493,7 +500,7 @@ export function resolverTurno(escolhaA, escolhaB, custoKiA = 0, custoKiB = 0) {
         return { danoA, danoB, kiA, kiB, narracao, cancelarA, cancelarB, proximoEstadoA, proximoEstadoB, clashDetectado };
     }
 
-        // 3.65 Mecânica de Elevação (Combate Aéreo)
+    // 3.65 Mecânica de Elevação (Combate Aéreo)
     const isElevacaoA = escolhaA.efeito === "SubirCeus" || escolhaA.efeito === "DescerCeus";
     const isElevacaoB = escolhaB.efeito === "SubirCeus" || escolhaB.efeito === "DescerCeus";
 
@@ -572,27 +579,45 @@ export function resolverTurno(escolhaA, escolhaB, custoKiA = 0, custoKiB = 0) {
         // A eleva, B faz ação neutra/defesa
         else if (elevacaoPermitidaA && isElevacaoA && !isElevacaoB && escolhaB.familia !== "Fisico" && escolhaB.familia !== "Ki") {
             if (escolhaA.efeito === "SubirCeus") {
-                proximoEstadoA = "AereoSolo"; proximoEstadoB = "SoloAereo";
-                if (escolhaB.efeito === "Carregar") { kiB += 30; narracao = "Você voa rumo às nuvens! O oponente fica no solo e aproveita para carregar energia."; }
-                else if (escolhaB.familia === "Defesa") { narracao = "Você voa rumo às nuvens! O oponente se protege no solo."; }
-                else { narracao = "Você voa rumo às nuvens! O oponente recua no solo."; }
+                if (estadoB === "AereoSolo" || estadoB === "Aereo") {
+                    proximoEstadoA = "Aereo"; proximoEstadoB = "Aereo";
+                    narracao = "Você voa aos céus e encontra o oponente no ar! Combate aéreo!";
+                } else {
+                    proximoEstadoA = "AereoSolo"; proximoEstadoB = "SoloAereo";
+                    if (escolhaB.efeito === "Carregar") { kiB += 30; narracao = "Você voa rumo às nuvens! O oponente fica no solo e carrega energia."; }
+                    else if (escolhaB.familia === "Defesa") { narracao = "Você voa rumo às nuvens! O oponente se protege no solo."; }
+                    else { narracao = "Você voa rumo às nuvens! O oponente recua no solo."; }
+                }
             } else { // DescerCeus
-                proximoEstadoA = "SoloAereo"; proximoEstadoB = "AereoSolo";
-                if (escolhaB.efeito === "Carregar") { kiB += 30; narracao = "Você aterrissa com força! O oponente permanece nos céus e carrega energia."; }
-                else { narracao = "Você aterrissa no solo! O oponente permanece nos céus."; }
+                if (estadoB === "SoloAereo" || estadoB === "Neutro" || estadoB === "Distancia") {
+                    proximoEstadoA = "Neutro"; proximoEstadoB = "Neutro";
+                    narracao = "Você aterrissa no solo! De volta ao corpo a corpo!";
+                } else {
+                    proximoEstadoA = "SoloAereo"; proximoEstadoB = "AereoSolo";
+                    narracao = "Você aterrissa no solo! O oponente permanece nos céus.";
+                }
             }
         }
         // B eleva, A faz ação neutra/defesa
         else if (elevacaoPermitidaB && isElevacaoB && !isElevacaoA && escolhaA.familia !== "Fisico" && escolhaA.familia !== "Ki") {
             if (escolhaB.efeito === "SubirCeus") {
-                proximoEstadoB = "AereoSolo"; proximoEstadoA = "SoloAereo";
-                if (escolhaA.efeito === "Carregar") { kiA += 30; narracao = "O oponente voa rumo às nuvens! Você fica no solo e aproveita para carregar energia."; }
-                else if (escolhaA.familia === "Defesa") { narracao = "O oponente voa rumo às nuvens! Você se protege no solo."; }
-                else { narracao = "O oponente voa rumo às nuvens! Você recua no solo."; }
+                if (estadoA === "AereoSolo" || estadoA === "Aereo") {
+                    proximoEstadoA = "Aereo"; proximoEstadoB = "Aereo";
+                    narracao = "O oponente voa aos céus e te encontra no ar! Combate aéreo!";
+                } else {
+                    proximoEstadoB = "AereoSolo"; proximoEstadoA = "SoloAereo";
+                    if (escolhaA.efeito === "Carregar") { kiA += 30; narracao = "O oponente voa rumo às nuvens! Você fica no solo e carrega energia."; }
+                    else if (escolhaA.familia === "Defesa") { narracao = "O oponente voa rumo às nuvens! Você se protege no solo."; }
+                    else { narracao = "O oponente voa rumo às nuvens! Você recua no solo."; }
+                }
             } else { // DescerCeus
-                proximoEstadoB = "SoloAereo"; proximoEstadoA = "AereoSolo";
-                if (escolhaA.efeito === "Carregar") { kiA += 30; narracao = "O oponente aterrissa com força! Você permanece nos céus e carrega energia."; }
-                else { narracao = "O oponente aterrissa no solo! Você permanece nos céus."; }
+                if (estadoA === "SoloAereo" || estadoA === "Neutro" || estadoA === "Distancia") {
+                    proximoEstadoA = "Neutro"; proximoEstadoB = "Neutro";
+                    narracao = "O oponente aterrissa no solo! De volta ao corpo a corpo!";
+                } else {
+                    proximoEstadoB = "SoloAereo"; proximoEstadoA = "AereoSolo";
+                    narracao = "O oponente aterrissa no solo! Você permanece nos céus.";
+                }
             }
         }
         return { danoA, danoB, kiA, kiB, narracao, cancelarA, cancelarB, proximoEstadoA, proximoEstadoB, clashDetectado };
@@ -619,7 +644,7 @@ export function resolverTurno(escolhaA, escolhaB, custoKiA = 0, custoKiB = 0) {
                 "Fuga interrompida! Você surgiu na frente dele e acertou o golpe!",
                 "Você previu a rota de fuga e deu um emboscada nele!"
             ]);
-                } else if (escolhaA.efeito === "Fugir") {
+        } else if (escolhaA.efeito === "Fugir") {
             proximoEstadoA = "Distancia"; proximoEstadoB = "Distancia";
             if (escolhaB.efeito === "Carregar") {
                 kiB += 30;
@@ -844,7 +869,7 @@ export function resolverTurno(escolhaA, escolhaB, custoKiA = 0, custoKiB = 0) {
             proximoEstadoB = "Ofensiva"; proximoEstadoA = "Cambaleando";
             narracao = sortearFrase([
                 `GUARD IMPACT! Oponente defendeu com a guarda exata! Seu ${escolhaA.nome} foi rebatido. Ele assume a Ofensiva!`,
-                "DEFESA PERFFEITA! O oponente para seu ataque com um dedo e rebate!",
+                "DEFESA PERFEITA! O oponente para seu ataque com um dedo e rebate!",
                 "O oponente anula seu golpe e te empurra para trás! A pressão inverteu!"
             ]);
         } else if (venceSubTipo[escolhaB.subTipo] === escolhaA.subTipo) {
@@ -876,7 +901,7 @@ export function resolverTurno(escolhaA, escolhaB, custoKiA = 0, custoKiB = 0) {
             proximoEstadoA = "Ofensiva"; proximoEstadoB = "Cambaleando";
             narracao = sortearFrase([
                 `GUARD IMPACT! Você defendeu com a guarda exata! O ${escolhaB.nome} do oponente foi rebatido. Você assume a Ofensiva!`,
-                "DEFESA PERFFEITA! Você para o ataque com um dedo e rebate!",
+                "DEFESA PERFEITA! Você para o ataque com um dedo e rebate!",
                 "Você anula o golpe dele e o empurra para trás! A pressão inverteu!"
             ]);
         } else if (venceSubTipo[escolhaA.subTipo] === escolhaB.subTipo) {
@@ -904,17 +929,17 @@ export function resolverTurno(escolhaA, escolhaB, custoKiA = 0, custoKiB = 0) {
             danoB = escolhaA.dano;
             kiB += 10;
             narracao = sortearFrase([
-                "Sua técnica destrói a defesa inimiga! Acerto crítico!",
-                "O oponente não esperava por isso. Dano completo!",
-                "A vantagem é sua! O golpe causa estragos enormes."
+                "A técnica do seu oponente é inferior! O seu ataque o atinge em cheio!",
+                "A vantagem de estilo é sua! O golpe causa estragos enormes.",
+                "O ataque do oponente é varrido pelo seu! Dano massivo!"
             ]);
         } else if (venceFamilia[escolhaB.familia] === escolhaA.familia) {
             danoA = escolhaB.dano;
             kiA += 10;
             narracao = sortearFrase([
-                "A defesa não aguenta! O oponente te acerta em cheio!",
-                "A vantagem é dele! Você sofre o impacto máximo.",
-                "Você tenta se proteger, mas o ataque do oponente te perfura!"
+                "A técnica do seu oponente é superior! Você sofre o impacto total!",
+                "A vantagem de estilo é dele! Você é varrido pelo ataque inimigo!",
+                "Seu golpe é anulado pela força da técnica oposta! Dano cheio em você!"
             ]);
         }
     } else {
@@ -925,7 +950,7 @@ export function resolverTurno(escolhaA, escolhaB, custoKiA = 0, custoKiB = 0) {
             narracao = sortearFrase([
                 `CLASH! Ambos colidiram com ${escolhaA.nome}!`,
                 `IMPACTO DUPLO! ${escolhaA.nome} e ${escolhaB.nome} se chocam pesado!`,
-                `COLISÃO! Forças iguais se anulum no ar!`,
+                `COLISÃO! Forças iguais se anulam no ar!`,
                 `REPIQUE! Ambos acertaram seus golpes ao mesmo tempo!`,
                 `CHOQUE DE PODER! O ar explode com o impacto duplo!`
             ]);
@@ -980,7 +1005,7 @@ export function resolverClash(danoBase, injectA, injectB) {
         narracao = sortearFrase([
             "EMPATE! Uma EXPLOSÃO COLOSAL ocorre! O impacto arremessa ambos para longe! Volta à Distância!",
             "Forças iguais! A arena treme e a onda de choque joga ambos para lados opostos!",
-            "Ninguém cedeu! A explosão ressoa e voces se afastam em meio a fumaça!"
+            "Ninguém cedeu! A explosão ressoa e vocês se afastam em meio a fumaça!"
         ]);
     }
 

@@ -317,16 +317,31 @@ function iniciarTurno() {
             atualizarStatusUI();
         }
 
+        let contexto = "Escolha sua ação.";
+        if (estado.meuEstado === "AereoSolo") contexto = "Você está voando e o oponente está no chão! Use 'Descer ao Solo' para se aproximar.";
+        else if (estado.meuEstado === "SoloAereo") contexto = "Você está no chão e o oponente está voando! Use 'Subir aos Céus' para se aproximar.";
+        else if (estado.meuEstado === "Aereo") contexto = "Vocês dois estão voando no ar! Corpo a corpo nas nuvens!";
+        else if (estado.meuEstado === "AereoPerseguicao") contexto = "Você persegue o oponente no ar! Ele está fugindo!";
+        else if (estado.meuEstado === "AereoVoando") contexto = "Você foi lançado e está voando! O oponente te persegue!";
+        else if (estado.meuEstado === "Distancia") contexto = "Vocês estão no solo, porém distantes um do outro!";
+        else if (estado.meuEstado === "Neutro") contexto = "Vocês estão no solo, corpo a corpo!";
+        else if (estado.meuEstado === "OfensivaDist") contexto = "Você acertou um golpe à distância! Continue a pressão!";
+        else if (estado.meuEstado === "CambaleandoDist") contexto = "Você levou um golpe à distância! Reaja!";
+        else if (estado.meuEstado === "Perseguicao") contexto = "Você persegue o oponente! Ele foi lançado!";
+        else if (estado.meuEstado === "Voando") contexto = "Você foi lançado! O oponente te persegue!";
+        
+        if (estado.meuEstado === "FinalizarCombo") contexto = "VOCÊ ACHOU UMA BRECHA! O oponente não consegue reagir. FINALIZE O COMBO!";
+        else if (estado.meuEstado === "SofrendoCombo") contexto = "VOCÊ FOI PEGO NUM COMBO! Apanhando e sem reação...";
+        
+        atualizarArena(contexto);
+
         if (estado.meuEstado === "FinalizarCombo") {
-            atualizarArena("VOCÊ ACHOU UMA BRECHA! O oponente não consegue reagir. FINALIZE O COMBO!");
             renderizarBotoes();
             iniciarTimer();
         } else if (estado.meuEstado === "SofrendoCombo") {
-            atualizarArena("VOCÊ FOI PEGO NUM COMBO! Está apanhando consecutivamente e não consegue se defender...");
             document.getElementById('menu-acoes').innerHTML = '<p style="grid-column: span 2; text-align: center; color: #e74c3c; font-weight: bold; font-size: 1.2rem;">APANHANDO...</p>';
             clearInterval(timerTurno);
             let dummyMov = { nome: "Apanhando", familia: "Neutro", subTipo: "Neutro", dano: 0, ki: 0, efeito: "ApanharCombo", id: "apanhar_combo" };
-            // Envia o dummy move imediatamente (1.5s) para não travar o jogo online
             setTimeout(() => {
                 if (isModoBot) {
                     resolverTurnoAtual(dummyMov, 0, null, null);
@@ -337,7 +352,6 @@ function iniciarTurno() {
                 }
             }, 1500);
         } else {
-            atualizarArena("Escolha sua ação.");
             renderizarBotoes();
             verificarTransformacao();
             iniciarTimer();
@@ -446,9 +460,8 @@ function transformar() {
     atualizarArena("Você grita ao céu... Seus cabelos ficam dourados! SUPER SAIYAJIN!");
     adicionarLog("VOCÊ SE TRANSFORMOU! +30% de dano permanente!");
     atualizarStatusUI();
-    setTimeout(() => iniciarTurno(), 5000); // 5 segundos para o clímax
+    setTimeout(() => iniciarTurno(), 5000);
 }
-
 function atualizarStatusUI() {
     let stunJogador = estado.meuStun > 0 ? ` 💫${estado.meuStun}` : '';
     let stunBot = estado.oponStun > 0 ? ` 💫${estado.oponStun}` : '';
@@ -486,7 +499,7 @@ function renderizarBotoes() {
         "Voando": ["forcor_estab", "contra_furioso", "fugir", "explosao_aura"],
         "Atordoado": ["sacudir_cabeca", "aguentar_firme", "explosao_aura"],
         "FinalizarCombo": ["finalizar_fisico", "finalizar_ki", "finalizar_super"],
-        "SofrendoCombo": [], // Vítima de combo não tem opções
+        "SofrendoCombo": [], 
         "Aereo": ["seq_socos", "chute_giratorio", "golpe_cabeca", "martelo", "chute_ascendente", "rajada_ki", "onda_ampla", "kamehameha", "carregar_ki", "descer_ceus"],
         "AereoSolo": ["rajada_ki", "onda_ampla", "kamehameha", "guarda_alta", "bloqueio_pernas", "postura_fechada", "carregar_ki", "descer_ceus"],
         "SoloAereo": ["rajada_ki", "onda_ampla", "kamehameha", "guarda_alta", "bloqueio_pernas", "postura_fechada", "carregar_ki", "subir_ceus"],
@@ -528,7 +541,7 @@ function escolherMovimento(mov) {
     let movA = mov;
     let custoKiA = mov.ki;
     
-    if (mov.id === "kamehameha") {
+    if (mov.id === "kamehameha" || mov.id === "super_kamehameha") {
         movA = PREPARAR_KAME;
         meuPreparando = true;
     } else if (mov.id === "genki_dama") {
@@ -546,6 +559,7 @@ function escolherMovimento(mov) {
         });
     }
 }
+
 function resolverTurnoAtual(movA, custoKiA, movB_param, custoKiB_param) {
     let movB = movB_param;
     let custoKiB = custoKiB_param;
@@ -594,10 +608,7 @@ function resolverTurnoAtual(movA, custoKiA, movB_param, custoKiB_param) {
                     return permitidosBot.includes(m.id);
                 });
 
-                if (estado.oponenteEstado === "SofrendoCombo") {
-                    movB = { nome: "Apanhando", familia: "Neutro", subTipo: "Neutro", dano: 0, ki: 0, efeito: "ApanharCombo", id: "apanhar_combo" };
-                    custoKiB = 0;
-                } else if (movsValidosBot.length === 0) {
+                if (movsValidosBot.length === 0) {
                     movB = PREPARAR_GENKI;
                     custoKiB = 0;
                 } else {
@@ -615,7 +626,7 @@ function resolverTurnoAtual(movA, custoKiA, movB_param, custoKiB_param) {
     }
 
     turnoAtual++;
-    const resultado = resolverTurno(movA, movB, custoKiA, custoKiB);
+    const resultado = resolverTurno(movA, movB, custoKiA, custoKiB, estado.meuEstado, estado.oponenteEstado);
 
     if (resultado.clashDetectado) {
         meuPreparando = false;
@@ -654,7 +665,6 @@ function aplicarResultadoTurno(movA, movB, resultado) {
     let nerfJogadorAtivo = false;
     let nerfBotAtivo = false;
 
-    // Adicionado "&& resultado.danoA === 0" para não contar combo em Clash
     if (resultado.danoB > 0 && resultado.danoA === 0) {
         comboJogador.push(movA.id);
         if (comboJogador.length > 3) comboJogador.shift();
@@ -663,11 +673,10 @@ function aplicarResultadoTurno(movA, movB, resultado) {
             multDanoJogador = 0;
             resultado.danoB = 0;
             comboJogador = [];
-            resultado.danoA = Math.floor(15 * multDanoBot); // Dano de contra-ataque
+            resultado.danoA = Math.floor(15 * multDanoBot);
             nerfJogadorAtivo = true;
             estado.meuEstado = "CambaleandoDist";
             estado.oponenteEstado = "OfensivaDist";
-            // Sobrescreve a narração para contar o contra-ataque
             resultado.narracao = `OPONENTE DECIFROU SEU ESTILO! ${movA.nome} falhou. Você sofreu um contra-ataque de ${resultado.danoA} de dano!`;
         }
     } else {
@@ -686,7 +695,6 @@ function aplicarResultadoTurno(movA, movB, resultado) {
             nerfBotAtivo = true;
             estado.oponenteEstado = "CambaleandoDist";
             estado.meuEstado = "OfensivaDist";
-            // Sobrescreve a narração
             resultado.narracao = `VOCÊ DECIFROU O ESTILO DO OPONENTE! ${movB.nome} falhou. O oponente sofreu um contra-ataque de ${resultado.danoB} de dano!`;
         }
     } else {
@@ -724,7 +732,7 @@ function aplicarResultadoTurno(movA, movB, resultado) {
         comboFisicoBot = [];
     }
 
-        if (resultado.danoB > 0) resultado.danoB = Math.floor(resultado.danoB * multDanoJogador);
+    if (resultado.danoB > 0) resultado.danoB = Math.floor(resultado.danoB * multDanoJogador);
     if (resultado.danoA > 0) resultado.danoA = Math.floor(resultado.danoA * multDanoBot);
 
     // === COLISÃO DE AURAS ===
@@ -776,13 +784,11 @@ function aplicarResultadoTurno(movA, movB, resultado) {
             " A ENERGIA EXPLODE COM FORÇA TOTAL!",
             " UMA EXPLOSÃO COLOSAL DEVASTA O CENÁRIO!"
         ];
-        // Evita adicionar se já foi um texto de Finalizar Combo
         if (!resultado.narracao.includes("FINALIZA O COMBO")) {
             resultado.narracao += fracoesExplosao[Math.floor(Math.random() * fracoesExplosao.length)];
         }
     }
 
-    statTurnos++;
     if (resultado.danoB > statMaiorDano) statMaiorDano = resultado.danoB;
 
     if (meuPersonagem.id === "piccolo" && resultado.danoB > 0 && resultado.danoA === 0) {
@@ -865,18 +871,22 @@ function aplicarResultadoTurno(movA, movB, resultado) {
     }
 
     if (quebraDeGuardaAtiva) {
-        // Pula as transições normais abaixo pois o stun já foi aplicado
+        // Pula as transições normais
     } else if (comboFinalizarAtivoJogador) {
         estado.meuEstado = "FinalizarCombo";
-        estado.oponenteEstado = "SofrendoCombo"; // Vítima não pode fazer nada
+        estado.oponenteEstado = "SofrendoCombo";
         comboFinalizarAtivoJogador = false; 
     } else if (comboFinalizarAtivoBot) {
         estado.oponenteEstado = "FinalizarCombo";
-        estado.meuEstado = "SofrendoCombo"; // Você não pode fazer nada
+        estado.meuEstado = "SofrendoCombo";
         comboFinalizarAtivoBot = false; 
     } else if (resultado.proximoEstadoA) {
         estado.meuEstado = resultado.proximoEstadoA;
-        estado.oponenteEstado = resultado.proximoEstadoB;
+        if (resultado.proximoEstadoB) {
+            estado.oponenteEstado = resultado.proximoEstadoB;
+        } else {
+            estado.oponenteEstado = oponEstadoAnterior;
+        }
     } else if (estado.oponStun >= 3) {
         estado.oponenteEstado = "Atordoado";
         estado.meuEstado = "Neutro";
@@ -895,23 +905,21 @@ function aplicarResultadoTurno(movA, movB, resultado) {
         estado.oponenteEstado = "Neutro";
     } else if (resultado.danoB > 0 && resultado.danoA === 0) {
         if (movA.efeito === "LancaParede" || movA.efeito === "LancaCeu") {
-            let chanceColisao = Math.random() < 0.5; // 50% de chance
+            let chanceColisao = Math.random() < 0.5; 
             let isAereo = meuEstadoAnterior === "Aereo" || meuEstadoAnterior === "AereoPerseguicao" || meuEstadoAnterior === "AereoVoando" || meuEstadoAnterior === "AereoSolo";
             
             if (movA.efeito === "LancaCeu" && isAereo) {
-                // Lança para baixo (Chão)
                 if (chanceColisao) {
                     resultado.danoB += 10;
-                    resultado.narracao += " O oponente despencão e COLIDE com o solo! (+10 Dano de Impacto) O combo é interrompido!";
+                    resultado.narracao += " O oponente despencou e COLIDE com o solo! (+10 Dano de Impacto) O combo é interrompido!";
                     estado.meuEstado = "Neutro";
                     estado.oponenteEstado = "Cambaleando";
                 } else {
-                    resultado.narracao += " O oponente despencão, mas aterrissa em pé!";
+                    resultado.narracao += " O oponente despencou, mas aterrissa em pé!";
                     estado.meuEstado = "Neutro";
                     estado.oponenteEstado = "Cambaleando";
                 }
             } else if (movA.efeito === "LancaParede") {
-                // Lança Horizontal (Montanha)
                 if (chanceColisao) {
                     resultado.danoB += 10;
                     resultado.narracao += " O oponente colide com uma MONTANHA! (+10 Dano de Impacto) O combo é interrompido!";
@@ -923,7 +931,6 @@ function aplicarResultadoTurno(movA, movB, resultado) {
                     estado.oponenteEstado = isAereo ? "AereoVoando" : "Voando";
                 }
             } else {
-                // Lança para cima (Aereo)
                 resultado.narracao += " O oponente é arremessado aos CÉUS!";
                 estado.meuEstado = "AereoPerseguicao";
                 estado.oponenteEstado = "AereoVoando";
@@ -949,11 +956,11 @@ function aplicarResultadoTurno(movA, movB, resultado) {
             if (movB.efeito === "LancaCeu" && isAereo) {
                 if (chanceColisao) {
                     resultado.danoA += 10;
-                    resultado.narracao += " Você despencão e COLIDE com o solo! (+10 Dano de Impacto) O combo é interrompido!";
+                    resultado.narracao += " Você despencou e COLIDE com o solo! (+10 Dano de Impacto) O combo é interrompido!";
                     estado.oponenteEstado = "Neutro";
                     estado.meuEstado = "Cambaleando";
                 } else {
-                    resultado.narracao += " Você despencão, mas aterrissa em pé!";
+                    resultado.narracao += " Você despencou, mas aterrissa em pé!";
                     estado.oponenteEstado = "Neutro";
                     estado.meuEstado = "Cambaleando";
                 }
@@ -987,7 +994,6 @@ function aplicarResultadoTurno(movA, movB, resultado) {
             estado.meuEstado = "Cambaleando";
         }
     } else if (resultado.danoA > 0 && resultado.danoB > 0) {
-        // Ambos tomaram dano (Clash)
         let isAereo = meuEstadoAnterior === "Aereo" || meuEstadoAnterior === "AereoPerseguicao" || meuEstadoAnterior === "AereoVoando";
         let isAereoSep = meuEstadoAnterior === "AereoSolo" || meuEstadoAnterior === "SoloAereo";
         if (isAereo) {
@@ -998,7 +1004,6 @@ function aplicarResultadoTurno(movA, movB, resultado) {
             estado.meuEstado = "Neutro"; estado.oponenteEstado = "Neutro";
         }
     } else {
-        // Se nenhum dano ocorreu e nenhum estado foi forçado (ex: preparo do kamehameha), mantém o estado atual
         estado.meuEstado = meuEstadoAnterior;
         estado.oponenteEstado = oponEstadoAnterior;
     }
@@ -1008,7 +1013,6 @@ function aplicarResultadoTurno(movA, movB, resultado) {
     adicionarLog(`Resultado: ${resultado.narracao}`);
     atualizarStatusUI();
     
-    // Bloqueia os botões imediatamente para o jogador não clicar durante a narração
     document.querySelectorAll('.btn-acao').forEach(btn => {
         btn.disabled = true;
         btn.style.opacity = '0.5';
@@ -1016,7 +1020,7 @@ function aplicarResultadoTurno(movA, movB, resultado) {
     });
     
     jaResolviTurno = false;
-    setTimeout(() => iniciarTurno(), 5000); // 5 segundos para leitura
+    setTimeout(() => iniciarTurno(), 5000); 
 }
 
 function abrirJanelaLeilaoKi() {
@@ -1112,10 +1116,10 @@ function animarArena(resultado) {
 
     const danoMaximoAnim = Math.max(resultado.danoA, resultado.danoB);
     if (danoMaximoAnim > 0) {
-        if (danoMaximoAnim >= 25) { // Tremor forte para Kamehameha, Genki, Finalizadores
+        if (danoMaximoAnim >= 25) { 
             app.classList.add('tremor-tela-forte');
-            setTimeout(() => app.classList.remove('tremor-tela-forte'), 4500); // Dura até quase o fim da narração de 5s
-        } else { // Tremor normal para golpes comuns
+            setTimeout(() => app.classList.remove('tremor-tela-forte'), 4500); 
+        } else { 
             app.classList.add('tremor-tela');
             setTimeout(() => app.classList.remove('tremor-tela'), 400);
         }
