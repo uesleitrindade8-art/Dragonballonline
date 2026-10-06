@@ -78,7 +78,7 @@ export function resolverTurno(escolhaA, escolhaB, custoKiA = 0, custoKiB = 0, es
                 "O ataque do oponente te acerta antes do disparo! Dano total!",
                 "Impossível concentrar! Você foi brutalmente interrompido!"
             ]);
-            proximoEstadoB = "Ofensiva"; proximoEstadoA = "Cambaleando";
+            // Removido o forçar de estado, o main.js decide com base na distância
         } else if (escolhaB.efeito === "Esperar" || escolhaB.efeito === "Fugir") {
             narracao = "Você concentra energia... O oponente aproveita para ganhar distância!";
             proximoEstadoA = "Distancia"; proximoEstadoB = "Distancia";
@@ -102,7 +102,7 @@ export function resolverTurno(escolhaA, escolhaB, custoKiA = 0, custoKiB = 0, es
                 "Você não deixou ele respirar! Dano cheio no preparo!",
                 "O oponente tenta carregar, mas você é mais rápido!"
             ]);
-            proximoEstadoA = "Ofensiva"; proximoEstadoB = "Cambaleando";
+            // Removido o forçar de estado
         } else if (escolhaA.efeito === "Esperar" || escolhaA.efeito === "Fugir") {
             narracao = "Oponente concentra energia... Você aproveita para ganhar distância!";
             proximoEstadoA = "Distancia"; proximoEstadoB = "Distancia";
@@ -429,6 +429,7 @@ export function resolverTurno(escolhaA, escolhaB, custoKiA = 0, custoKiB = 0, es
                 "Velocidade máxima dos dois lados! O impacto ecoa!"
             ]);
         } else if (escolhaA.efeito === "AproximarVel" && (escolhaB.familia === "Ki" || escolhaB.efeito === "Carregar")) {
+            if (escolhaB.efeito === "Carregar") kiB += 30;
             proximoEstadoA = "Ofensiva"; proximoEstadoB = "Cambaleando";
             narracao = sortearFrase([
                 "Aproximação em velocidade! Você evade e chega na Ofensiva!",
@@ -436,25 +437,28 @@ export function resolverTurno(escolhaA, escolhaB, custoKiA = 0, custoKiB = 0, es
                 "O oponente não te viu chegando! A pressão é sua!"
             ]);
         } else if (escolhaB.efeito === "AproximarVel" && (escolhaA.familia === "Ki" || escolhaA.efeito === "Carregar")) {
+            if (escolhaA.efeito === "Carregar") kiA += 30;
             proximoEstadoB = "Ofensiva"; proximoEstadoA = "Cambaleando";
             narracao = sortearFrase([
-                "Oponente se aproxima em velocidade! Você é pego!",
-                "Flash veloz! O oponente cruza a arena e te pega de guarda baixa!",
-                "Você não o viu chegando! O oponente assume a Ofensiva!"
+                "Oponente se aproxima em velocidade! Você é pego, mas conseguiu carregar Ki!",
+                "Flash veloz! O oponente cruza a arena e te pega de guarda baixa, mas sua energia subiu!",
+                "Você não o viu chegando! O oponente assume a Ofensiva, mas você ganhou +30 de Ki!"
             ]);
         } else if (escolhaA.efeito === "Aproximar" && escolhaB.efeito === "Carregar") {
+            kiB += 30;
             proximoEstadoA = "Ofensiva"; proximoEstadoB = "Cambaleando";
             narracao = sortearFrase([
-                "Você se aproxima e o oponente é pego carregando Ki!",
-                "Caminhada triunfante! Você chega e dá um susto nele!",
-                "O oponente estava de olhos fechados. Você invadiu o espaço dele!"
+                "Você se aproxima e o oponente é pego carregando Ki (mas ele ganhou a energia)!",
+                "Caminhada triunfante! Você chega e dá um susto nele, mas a aura dele cresceu!",
+                "O oponente estava de olhos fechados. Você invadiu o espaço dele, mas ele carregou energia!"
             ]);
         } else if (escolhaB.efeito === "Aproximar" && escolhaA.efeito === "Carregar") {
+            kiA += 30;
             proximoEstadoB = "Ofensiva"; proximoEstadoA = "Cambaleando";
             narracao = sortearFrase([
-                "Oponente se aproxima e te pega carregando Ki!",
-                "Caminhada triunfante dele! Você estava distraído!",
-                "O oponente invade seu espaço enquanto você focava em energia!"
+                "Oponente se aproxima e te pega carregando Ki (mas você ganhou a energia)!",
+                "Caminhada triunfante dele! Você estava distraído, mas sua aura cresceu!",
+                "O oponente invade seu espaço enquanto você focava em energia, mas você concluiu a carga!"
             ]);
         } else if (isAproxA && isAproxB) {
             narracao = sortearFrase([
@@ -822,6 +826,9 @@ export function resolverTurno(escolhaA, escolhaB, custoKiA = 0, custoKiB = 0, es
                     "Você evadiu por pouco e ganhou terreno.",
                     "Bate em retirada estratégica! O golpe não te pegou."
                 ]);
+            } else if (escolhaB.efeito === "Carregar") {
+                kiB += 30;
+                narracao = "Você recua enquanto o oponente aproveita para carregar Ki! A distância aumenta.";
             } else if (escolhaB.familia === "Defesa") {
                 narracao = "Você recua enquanto o oponente se protege. A distância aumenta.";
             } else {
@@ -834,6 +841,9 @@ export function resolverTurno(escolhaA, escolhaB, custoKiA = 0, custoKiB = 0, es
                     "O oponente evadiu por pouco e ganhou terreno.",
                     "Ele bateu em retirada! Seu golpe acertou o vazio."
                 ]);
+            } else if (escolhaA.efeito === "Carregar") {
+                kiA += 30;
+                narracao = "O oponente recua enquanto você aproveita para carregar Ki! A distância aumenta.";
             } else if (escolhaA.familia === "Defesa") {
                 narracao = "O oponente recua enquanto você se protege. A distância aumenta.";
             } else {
